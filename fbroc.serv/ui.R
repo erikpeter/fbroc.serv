@@ -24,12 +24,18 @@ shinyUI(fluidPage(
                   '.csv',
                   '.tsv'
                 )),
-      uiOutput("boot.slider"))
+      uiOutput("select.pred"),
+      uiOutput("select.class"),     
+      uiOutput("boot.slider"),
+      uiOutput("conf.slider"), 
+      uiOutput("sel.metric"),
+      uiOutput("metric.text"), width = 3)
       ,
       
     # Show a plot of the generated distribution
     mainPanel(
-      plotOutput("distPlot")
+      textOutput("status.msg"),
+      plotOutput("roc.plot")
     )
   )
 ))
