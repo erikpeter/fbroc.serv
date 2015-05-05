@@ -34,8 +34,17 @@ shinyUI(fluidPage(
       
     # Show a plot of the generated distribution
     mainPanel(
-      textOutput("status.msg"),
-      plotOutput("roc.plot")
+      tabsetPanel(
+        tabPanel("ROC curve",
+                 textOutput("status.msg"),
+                 plotOutput("roc.plot")
+        ),
+        tabPanel("Performance analysis",
+                 textOutput("status.msg2"),
+                 tableOutput("perf.table"),
+                 plotOutput("perf.plot")                
+        )
+      )
     )
   )
 ))

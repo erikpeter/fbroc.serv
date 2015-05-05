@@ -62,6 +62,37 @@ shinyServer(function(input, output) {
     return(daten()[!index.na(), ])
   })
   
+  perf.obj <- reactive({
+    ro <- roc.obj()
+    if (is.null(ro)) return(NULL)
+    if (is.null(input$which.metric)) return(NULL)
+    if (input$which.metric == "none") return(NULL)
+    if (input$which.metric == "AUC") metric <- "auc"
+    perf.obj <- perf.roc(ro, metric = metric, conf.level = input$conf.level)
+    return(perf.obj)
+  })
+  
+  output$perf.plot <- renderPlot({
+    if (is.null(perf.obj())) return(NULL)
+    plot(perf.obj())
+  }, height = 600, width = 600)
+  
+  output$perf.table <- renderTable({
+    if (is.null(perf.obj())) return(NULL)
+    p.o <- perf.obj()
+    output <- data.frame(input$which.metric,
+                         input$n.boot,
+                         p.o$Observed.Performance,
+                         sd(p.o$boot.results),
+                         p.o$CI.Performance[1],
+                         p.o$CI.Performance[2])
+    ci.lev <- round(100* p.o$conf.level , 0)
+    ci.labels <- paste(ci.lev, "% CI ", c("lower", "upper"), sep = "")
+    names(output) <- c("Metric", "N.Boot", "Est.", "SE", ci.labels)
+    print(output)
+    return(output)    
+  }, include.rownames=FALSE)
+  
   output$roc.plot <- renderPlot({
     ro <- roc.obj()
     if (is.null(ro)) return(NULL)
@@ -77,7 +108,7 @@ shinyServer(function(input, output) {
     return(c(pos, neg))
   })
   
-  output$status.msg <- renderText({
+  status.message <- reactive({
     if (is.null(daten())) return("Please load a dataset")
     if (is.null(input$pred.col)) return("Please select prediction column")
     if (is.null(input$class.col)) return("Please select class column")    
@@ -87,6 +118,8 @@ shinyServer(function(input, output) {
     msg <- paste("Data loaded and", class.n()[1],"positive and", class.n()[2],
                  "negative samples found.")    
   })
+  output$status.msg <- renderText(status.message())
+  output$status.msg2 <- renderText(status.message())
   
   output$select.class <- renderUI({
     if (is.null(daten())) return(NULL)
