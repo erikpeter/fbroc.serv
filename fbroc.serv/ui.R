@@ -1,11 +1,5 @@
-
-# This is the user-interface definition of a Shiny web application.
-# You can find out more about building applications with Shiny here:
-#
-# http://shiny.rstudio.com
-#
-
 library(shiny)
+library(markdown)
 
 shinyUI(fluidPage(
 
@@ -35,6 +29,8 @@ shinyUI(fluidPage(
     # Show a plot of the generated distribution
     mainPanel(
       tabsetPanel(
+        tabPanel("General information",
+                 includeMarkdown("info.md")),
         tabPanel("ROC curve",
                  textOutput("status.msg"),
                  plotOutput("roc.plot")
