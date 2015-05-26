@@ -14,6 +14,10 @@ shinyServer(function(input, output) {
   
   
   daten <- reactive({    
+    if (input$useown == FALSE) {
+      data(roc.examples)
+      return(roc.examples)
+    }
     if (is.null(input$in.file))
       return(NULL)
     read.delim(input$in.file$datapath)    
@@ -24,7 +28,7 @@ shinyServer(function(input, output) {
     if (is.null(daten())) return(NULL)
     if (is.null(input$pred.col)) return(NULL)
     
-    if (class(daten()[, input$pred.col]) == "numeric") return(TRUE) 
+    if (class(daten()[, input$pred.col]) %in% c("numeric", "integer")) return(TRUE) 
       else return(FALSE)
   })
   
@@ -53,7 +57,7 @@ shinyServer(function(input, output) {
     if (is.null(input$which.metric)) return(NULL)
     daten <- na.free.data()
     
-    boot.roc(daten[, input$pred.col], daten[, input$class.col], 
+    boot.roc(as.numeric(daten[, input$pred.col]), daten[, input$class.col], 
              n.boot = input$n.boot)    
   })
   

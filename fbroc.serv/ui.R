@@ -9,15 +9,17 @@ shinyUI(fluidPage(
   # Sidebar with a slider input for number of bins
   sidebarLayout(
     sidebarPanel(
-      fileInput("in.file", "Upload tab-delimited file",
-                accept = c(
-                  'text/csv',
-                  'text/comma-separated-values',
-                  'text/tab-separated-values',
-                  'text/plain',
-                  '.csv',
-                  '.tsv'
-                )),
+      checkboxInput("useown", "Use uploaded data", FALSE),
+      conditionalPanel(condition = "input.useown == true",
+                       fileInput("in.file", "Upload tab-delimited file",
+                                 accept = c(
+                                'text/csv',
+                                'text/comma-separated-values',
+                                'text/tab-separated-values',
+                                'text/plain',
+                                '.csv',
+                                '.tsv'
+                ))),
       uiOutput("select.pred"),
       uiOutput("select.class"),     
       uiOutput("boot.slider"),
