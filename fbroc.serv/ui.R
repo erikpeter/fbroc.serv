@@ -25,7 +25,12 @@ shinyUI(fluidPage(
       uiOutput("boot.slider"),
       uiOutput("conf.slider"), 
       uiOutput("sel.metric"),
-      uiOutput("metric.text"), width = 3)
+      uiOutput("metric.text"), 
+      uiOutput("metric.param.slider"),
+                       
+      
+      
+      width = 3)
       ,
       
     # Show a plot of the generated distribution

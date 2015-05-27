@@ -25,6 +25,7 @@ shinyServer(function(input, output) {
   
   
   valid.pred <- reactive({
+    if (!input$useown) return(TRUE)
     if (is.null(daten())) return(NULL)
     if (is.null(input$pred.col)) return(NULL)
     
@@ -33,6 +34,7 @@ shinyServer(function(input, output) {
   })
   
   valid.class <- reactive({
+    if (!input$useown) return(TRUE)
     if (is.null(daten())) return(NULL)
     if (is.null(input$class.col)) return(NULL)
     
@@ -41,6 +43,7 @@ shinyServer(function(input, output) {
   })
   
   index.na <- reactive({
+    if (!input$useown) return(rep(FALSE, length(daten()$True.Class)))
     if (is.null(valid.pred())) return(NULL)
     if (is.null(valid.class())) return(NULL)
     if (!(valid.class() & valid.pred())) return(NULL)
@@ -50,14 +53,32 @@ shinyServer(function(input, output) {
 
   })
   
+  prediction.col <- reactive({
+    if (!input$useown) {
+      if (input$pred.col == "Continuous predictor") return("Cont.Pred")
+      if (input$pred.col == "Continuous with outlier") return("Cont.Pred.Outlier")   
+      if (input$pred.col == "Discrete predictor") return("Disc.Pred")
+      if (input$pred.col == "Discrete with outlier") return("Disc.Pred.Outlier")
+    } else {
+        if (is.null(daten())) return(NULL)
+        return(input$pred.col)
+    }
+  })
+  
+  prediction <- reactive({
+    if (is.null(daten())) return(NULL)
+    if (is.null(prediction.col())) return(NULL)
+    return(daten()[, prediction.col()])
+  })
+  
   roc.obj <- reactive({
     if (is.null(daten())) return(NULL)
     if (is.null(na.free.data())) return(NULL)
     if (is.null(input$n.boot)) return(NULL)
-    if (is.null(input$which.metric)) return(NULL)
+    if (is.null(input$which_metric)) return(NULL)
     daten <- na.free.data()
-    
-    boot.roc(as.numeric(daten[, input$pred.col]), daten[, input$class.col], 
+    if (input$useown) pc <- input$pred.col else pc <- "True.Class"
+    boot.roc(prediction(), daten[, pc], use.cache = TRUE,
              n.boot = input$n.boot)    
   })
   
@@ -69,10 +90,19 @@ shinyServer(function(input, output) {
   perf.obj <- reactive({
     ro <- roc.obj()
     if (is.null(ro)) return(NULL)
-    if (is.null(input$which.metric)) return(NULL)
-    if (input$which.metric == "none") return(NULL)
-    if (input$which.metric == "AUC") metric <- "auc"
-    perf.obj <- perf.roc(ro, metric = metric, conf.level = input$conf.level)
+    if (is.null(input$which_metric)) return(NULL)
+    if (input$which_metric == "none") return(NULL)
+    metric <- tolower(input$which_metric)
+    call.param <- list(roc = ro, metric = metric, conf.level = input$conf.level)
+    if (metric == "fpr") {
+      if (is.null(input$metric.param)) return(NULL)
+      call.param <- c(call.param, list(tpr = as.numeric(input$metric.param)))
+    }
+    if (metric == "tpr") {
+      if (is.null(input$metric.param)) return(NULL)
+      call.param <- c(call.param, list(fpr = as.numeric(input$metric.param)))
+    }
+    perf.obj <- do.call(perf.roc, call.param)
     return(perf.obj)
   })
   
@@ -84,7 +114,7 @@ shinyServer(function(input, output) {
   output$perf.table <- renderTable({
     if (is.null(perf.obj())) return(NULL)
     p.o <- perf.obj()
-    output <- data.frame(input$which.metric,
+    output <- data.frame(input$which_metric,
                          input$n.boot,
                          p.o$Observed.Performance,
                          sd(p.o$boot.results),
@@ -101,11 +131,29 @@ shinyServer(function(input, output) {
     ro <- roc.obj()
     if (is.null(ro)) return(NULL)
     metric <- NULL 
-    if (input$which.metric == "AUC") metric <- "auc"
-    plot(ro, conf.level = input$conf.level, show.metric = metric)
+    if (is.null(input$which_metric)) return(NULL)
+
+    metric <- tolower(input$which_metric)  
+    metric2 <- metric
+    if (metric2 == "none") metric2 <- NULL
+    call.param <- list(x = ro, conf.level = input$conf.level, show.metric = metric2)
+    
+    if (metric == "fpr") {
+      if (is.null(input$metric.param)) return(NULL)
+      call.param <- c(call.param, list(tpr = as.numeric(input$metric.param)))
+    }
+    if (metric == "tpr") {
+      if (is.null(input$metric.param)) return(NULL)
+      call.param <- c(call.param, list(fpr = as.numeric(input$metric.param)))
+    }
+   
+    do.call(plot, call.param)
+    #plot(ro, conf.level = input$conf.level, show.metric = metric)
   }, height = 800, width = 800)
   
   class.n <- reactive({
+    
+    if (!input$useown) return(c(sum(daten()$True.Class), sum(!daten()$True.Class)))
     if (is.null(na.free.data())) return(NULL)
     pos <- sum(na.free.data()[, input$class.col])
     neg <- sum(!na.free.data()[, input$class.col])
@@ -115,7 +163,7 @@ shinyServer(function(input, output) {
   status.message <- reactive({
     if (is.null(daten())) return("Please load a dataset")
     if (is.null(input$pred.col)) return("Please select prediction column")
-    if (is.null(input$class.col)) return("Please select class column")    
+    if (is.null(input$class.col) & input$useown) return("Please select class column")    
     if (!valid.pred()) return("Prediction column must be numeric")
     if (!valid.class()) return("Class column must be logical")
     if (any(class.n() == 0)) return("Positive or negative class is empty")
@@ -127,14 +175,22 @@ shinyServer(function(input, output) {
   
   output$select.class <- renderUI({
     if (is.null(daten())) return(NULL)
+    if (!input$useown) return(NULL)
     selectInput("class.col", "Select class column",
                 choices = names(daten()))
   })
   
   output$select.pred <- renderUI({
     if (is.null(daten())) return(NULL)
+    if (!input$useown) {
+      selectInput("pred.col", "Select prediction column",
+                  choices = c("Continuous predictor", "Continuous with outlier",
+                              "Discrete predictor", "Discrete with outlier"),
+                  selected = "Continuous predictor")  
+    } else {
     selectInput("pred.col", "Select prediction column",
                 choices = names(daten()))
+    }
   })
   
   output$boot.slider <- renderUI({
@@ -168,8 +224,24 @@ shinyServer(function(input, output) {
   output$sel.metric <- renderUI({
     if (is.null(daten())) return(NULL)
     if (is.null(class.n())) return(NULL)
-    selectInput("which.metric", "Select metric",
-                choices = c("none", "AUC"), selected = "none")
+    selectInput("which_metric", "Select metric",
+                choices = c("none", "AUC", "TPR", "FPR"), selected = "none")
+  })
+  
+  output$metric.param.slider <- renderUI({
+    if (is.null(daten())) return(NULL)
+    if (is.null(input$which_metric)) return(NULL)
+    if (input$which_metric %in% c("none", "AUC")) return(NULL)
+    if (input$which_metric == "TPR") text = "Fix FPR"
+    if (input$which_metric == "FPR") text = "Fix TPR"
+    sliderInput("metric.param",
+                text,
+                min = 0,
+                max = 1,
+                round = as.integer(-2),
+                step = 0.01,
+                ticks = FALSE,
+                value = 0.5)
   })
   
   output$metric.text <- renderUI({
