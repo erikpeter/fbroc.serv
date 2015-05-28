@@ -68,7 +68,7 @@ shinyServer(function(input, output) {
   prediction <- reactive({
     if (is.null(daten())) return(NULL)
     if (is.null(prediction.col())) return(NULL)
-    return(daten()[, prediction.col()])
+    return(na.free.data()[, prediction.col()])
   })
   
   roc.obj <- reactive({
@@ -77,7 +77,7 @@ shinyServer(function(input, output) {
     if (is.null(input$n.boot)) return(NULL)
     if (is.null(input$which_metric)) return(NULL)
     daten <- na.free.data()
-    if (input$useown) pc <- input$pred.col else pc <- "True.Class"
+    if (input$useown) pc <- input$class.col else pc <- "True.Class"
     boot.roc(prediction(), daten[, pc], use.cache = TRUE,
              n.boot = input$n.boot)    
   })
