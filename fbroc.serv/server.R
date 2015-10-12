@@ -6,6 +6,8 @@
 #
 
 library(shiny)
+library(devtools)
+dev_mode(on=T)
 library(fbroc)
 
 options(shiny.maxRequestSize = 50*1024^2)
@@ -102,7 +104,7 @@ shinyServer(function(input, output) {
       if (is.null(input$metric.param)) return(NULL)
       call.param <- c(call.param, list(fpr = as.numeric(input$metric.param)))
     }
-    perf.obj <- do.call(perf.roc, call.param)
+    perf.obj <- do.call(perf, call.param)
     return(perf.obj)
   })
   
@@ -146,7 +148,7 @@ shinyServer(function(input, output) {
       if (is.null(input$metric.param)) return(NULL)
       call.param <- c(call.param, list(fpr = as.numeric(input$metric.param)))
     }
-   
+
     do.call(plot, call.param)
     #plot(ro, conf.level = input$conf.level, show.metric = metric)
   }, height = 800, width = 800)
@@ -198,10 +200,10 @@ shinyServer(function(input, output) {
     if (is.null(class.n())) return(NULL)
     sliderInput("n.boot",
                 "Number of bootstrap iterations:",
-                min = 100,
-                max = 10000,
+                min = 500,
+                max = 50000,
                 round = as.integer(2),
-                step = 100,
+                step = 500,
                 ticks = FALSE,
                 value = 2000)
    

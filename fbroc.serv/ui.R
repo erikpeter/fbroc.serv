@@ -9,7 +9,7 @@ shinyUI(fluidPage(
   # Sidebar with a slider input for number of bins
   sidebarLayout(
     sidebarPanel(
-      checkboxInput("useown", "Use uploaded data", FALSE),
+      checkboxInput("useown", "Upload data", FALSE),
       conditionalPanel(condition = "input.useown == true",
                        fileInput("in.file", "Upload tab-delimited file",
                                  accept = c(
