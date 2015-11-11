@@ -7,7 +7,6 @@
 
 library(shiny)
 library(devtools)
-dev_mode(on=T)
 library(fbroc)
 
 options(shiny.maxRequestSize = 50*1024^2)

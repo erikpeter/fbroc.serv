@@ -5,8 +5,7 @@ date: "Saturday, May 28, 2015"
 output: html_document
 ---
 
-
-## About
+# NEEDS TO BE UPDATED
 
 This is a [Shiny](http://shiny.rstudio.com/) interface for my R-package 
 [fbroc](http://cran.r-project.org/web/packages/fbroc/index.html), which uses a very fast algorithm implemented 
