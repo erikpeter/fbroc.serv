@@ -11,7 +11,7 @@ library(fbroc)
 
 options(shiny.maxRequestSize = 50*1024^2)
 
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
   
   
   daten <- reactive({    
@@ -110,7 +110,7 @@ shinyServer(function(input, output) {
   output$perf.plot <- renderPlot({
     if (is.null(perf.obj())) return(NULL)
     plot(perf.obj())
-  }, height = 600, width = 600)
+  }, height = function() {session$clientData$output_perf.plot_width})
   
   output$perf.table <- renderTable({
     if (is.null(perf.obj())) return(NULL)
@@ -128,12 +128,15 @@ shinyServer(function(input, output) {
     return(output)    
   }, include.rownames=FALSE)
   
+
+  
   output$roc.plot <- renderPlot({
+    if (is.null(roc.obj())) return(NULL)
     ro <- roc.obj()
-    if (is.null(ro)) return(NULL)
+    
     metric <- NULL 
     if (is.null(input$which_metric)) return(NULL)
-
+    
     metric <- tolower(input$which_metric)  
     metric2 <- metric
     if (metric2 == "none") metric2 <- NULL
@@ -148,9 +151,10 @@ shinyServer(function(input, output) {
       call.param <- c(call.param, list(fpr = as.numeric(input$metric.param)))
     }
 
-    do.call(plot, call.param)
-    #plot(ro, conf.level = input$conf.level, show.metric = metric)
-  }, height = 800, width = 800)
+    graph <- do.call(plot, call.param)
+    
+  },  height = function() {session$clientData$output_roc.plot_width})
+  
   
   class.n <- reactive({
     
@@ -162,9 +166,9 @@ shinyServer(function(input, output) {
   })
   
   status.message <- reactive({
-    if (is.null(daten())) return("Please load a dataset")
-    if (is.null(input$pred.col)) return("Please select prediction column")
-    if (is.null(input$class.col) & input$useown) return("Please select class column")    
+   
+    if (is.null(input$pred.col)) return("Please setup data first")
+    if (is.null(input$class.col) & input$useown) return("Please setup data first")
     if (!valid.pred()) return("Prediction column must be numeric")
     if (!valid.class()) return("Class column must be logical")
     if (any(class.n() == 0)) return("Positive or negative class is empty")

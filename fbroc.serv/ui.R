@@ -5,8 +5,7 @@ library(shinydashboard)
 dashboardPage(
   dashboardHeader(title = "fbroc 0.3.1"),
   dashboardSidebar( sidebarMenu(
-    menuItem("About", tabName = "about", icon = icon("book")),
-    menuItem("Data", tabName = "data", icon = icon("database")),
+    menuItem("Data & About", tabName = "data", icon = icon("database")),
     menuItem("ROC curve", tabName = "roc", icon = icon("area-chart")),
     menuItem("ROC performance", tabName = "perf", icon = icon("bar-chart")),
     uiOutput("boot.slider"),
@@ -17,14 +16,11 @@ dashboardPage(
   )),
   dashboardBody(
     tabItems(
-      tabItem(tabName = "about",
-              h2("About"),
-              fluidRow(box(includeMarkdown("info.md")))
-              ),
       tabItem(tabName = "data",
-              h2("Data"),
+              h2("Data & About"),
               fluidRow(
-                box(
+                box(title = "Data settings", solidHeader = TRUE,
+                    status = "primary",
                   checkboxInput("useown", "Upload data", FALSE),
                   conditionalPanel(condition = "input.useown == true",
                                    fileInput("in.file", "Upload tab-delimited file",
@@ -38,23 +34,30 @@ dashboardPage(
                                              ))),
                                   uiOutput("select.pred"),
                                   uiOutput("select.class")
-                )
+                            
+                ),
+                box(width = 12,  title = "About", includeMarkdown("info.md"), solidHeader = TRUE,
+                    status = "info")
               )),
       tabItem(tabName = "roc",
               h2("ROC Curve"),
               fluidRow(
-                box(width = 6,height = 850, title = "ROC Curve", solidHeader = TRUE,
+                box(width =12,  textOutput("status.msg")),
+                
+                box(width = 6,title = "ROC Curve", solidHeader = TRUE,
+                #box(title = "ROC Curve", solidHeader = TRUE,
                     status = "primary",
-                    plotOutput("roc.plot"))
+                    plotOutput("roc.plot", height = "auto"))
               )
               ),
       tabItem(tabName = "perf",
               h2("Performance"),
               fluidRow(
-                box(width = 4, height = 700, title = "Performance Histogram", solidHeader = TRUE,
+                box(width =12,  textOutput("status.msg2")),
+                box(width = 6, title = "Performance Histogram", solidHeader = TRUE,
                     status = "primary",
-                    plotOutput("perf.plot")),
-                box(width = 3, title = "Performance Table", solidHeader = TRUE,
+                    plotOutput("perf.plot", height = "auto")),
+                box(width = 4, title = "Performance Table", solidHeader = TRUE,
                     status = "info",
                     tableOutput("perf.table"))
                 )
