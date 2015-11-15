@@ -61,25 +61,26 @@ dashboardPage(
               fluidRow(
                 
                 #box(width =12,  textOutput("status.msg")),
-                
-                box(width = 6,title = "ROC Curve", solidHeader = TRUE,
+                infoBoxOutput("status.box"),
+                box(width = 5,title = "ROC Curve", solidHeader = TRUE,
                 #box(title = "ROC Curve", solidHeader = TRUE,
                     status = "primary",
-                    plotOutput("roc.plot", height = "auto"), uiOutput("metric.text")),
-                infoBoxOutput("status.box")
+                    plotOutput("roc.plot", height = "auto"), uiOutput("metric.text"))
+                
               )
               ),
       tabItem(tabName = "perf",
               h2("Performance"),
               fluidRow(
                 #box(width =12,  textOutput("status.msg2")),
-                box(width = 6, title = "Performance Histogram", solidHeader = TRUE,
+                infoBoxOutput("status.box.perf"),
+#                 box(width = 3, title = "Performance Table", solidHeader = TRUE,
+#                     status = "primary", height = 200,
+#                     tableOutput("perf.table")),
+                box(width = 5, title = "Performance", solidHeader = TRUE,
                     status = "primary",
-                    plotOutput("perf.plot", height = "auto")),
-                box(width = 4, title = "Performance Table", solidHeader = TRUE,
-                    status = "primary",
-                    tableOutput("perf.table")),
-                infoBoxOutput("status.box.perf")
+                    tableOutput("perf.table"),plotOutput("perf.plot", height = "auto"))
+               
                 )
               )
     )

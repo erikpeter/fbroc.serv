@@ -224,7 +224,7 @@ shinyServer(function(input, output, session) {
         out <- infoBox("Data loaded", msg, icon = icon("check"), color = "green")
       }
     }
-    print(str(out))
+
     return(out)
   }) 
   
