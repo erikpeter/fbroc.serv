@@ -63,16 +63,27 @@ img {
 <div id="header">
 <h1 class="title">Information</h1>
 <h4 class="author"><em>Erik Peter</em></h4>
-<h4 class="date"><em>Saturday, May 09, 2015</em></h4>
+<h4 class="date"><em>Saturday, May 28, 2015</em></h4>
 </div>
 
 
-<p>This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <a href="http://rmarkdown.rstudio.com" class="uri">http://rmarkdown.rstudio.com</a>.</p>
-<p>When you click the <strong>Knit</strong> button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:</p>
-<pre class="{r}"><code>summary(cars)</code></pre>
-<p>You can also embed plots, for example:</p>
-<p><code>{r, echo=FALSE} plot(cars)</code></p>
-<p>Note that the <code>echo = FALSE</code> parameter was added to the code chunk to prevent printing of the R code that generated the plot.</p>
+<div id="test-fbroc-with-example-data" class="section level4">
+<h4>Test fbroc with example data</h4>
+<p>At startup the shiny app will work on the example dataset “roc.examples” included in fbroc. It includes four different predictors, two continuous and two discrete.</p>
+</div>
+<div id="use-your-own-data" class="section level4">
+<h4>Use your own data</h4>
+<ol style="list-style-type: decimal">
+<li>Click on the checkbox “Upload data” to use your own data.</li>
+<li>Use a tab-delimited text file as input (Excel can save tables in this format).</li>
+<li>The text file must include a column with numerical values. Higher values are assumed to be associated with the positive class.</li>
+<li>It must also include a column with the classes. Denote the positive class with <code>TRUE</code> and the negative class with <code>FALSE</code>.</li>
+</ol>
+</div>
+<div id="contact" class="section level4">
+<h4>Contact</h4>
+<p>If you have problems with or suggestions for either this shiny application or package fbroc please contact me at <a href="mailto:jerikpeter@googlemail.com">jerikpeter@googlemail.com</a>.</p>
+</div>
 
 
 </div>

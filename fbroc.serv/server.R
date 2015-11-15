@@ -76,7 +76,7 @@ shinyServer(function(input, output, session) {
     if (is.null(daten())) return(NULL)
     if (is.null(na.free.data())) return(NULL)
     if (is.null(input$n.boot)) return(NULL)
-    if (is.null(input$which_metric)) return(NULL)
+    if (is.null(isolate(input$which_metric))) return(NULL)
     daten <- na.free.data()
     if (input$useown) pc <- input$class.col else pc <- "True.Class"
     boot.roc(prediction(), daten[, pc], use.cache = TRUE,
@@ -134,12 +134,16 @@ shinyServer(function(input, output, session) {
     if (is.null(roc.obj())) return(NULL)
     ro <- roc.obj()
     
-    metric <- NULL 
-    if (is.null(input$which_metric)) return(NULL)
-    
+  
     metric <- tolower(input$which_metric)  
     metric2 <- metric
-    if (metric2 == "none") metric2 <- NULL
+    if (is.null(input$which_metric)) metric2 <- NULL
+    else {
+      metric <- tolower(input$which_metric)  
+      metric2 <- metric
+      if (metric2 == "none") metric2 <- NULL
+    }
+   
     call.param <- list(x = ro, conf.level = input$conf.level, show.metric = metric2)
     
     if (metric == "fpr") {
@@ -165,10 +169,12 @@ shinyServer(function(input, output, session) {
     return(c(pos, neg))
   })
   
+
+  
   status.message <- reactive({
    
-    if (is.null(input$pred.col)) return("Please setup data first")
-    if (is.null(input$class.col) & input$useown) return("Please setup data first")
+    if (is.null(input$pred.col)) return("Setup data first")
+    if (is.null(input$class.col) & input$useown) return("Setup data first")
     if (!valid.pred()) return("Prediction column must be numeric")
     if (!valid.class()) return("Class column must be logical")
     if (any(class.n() == 0)) return("Positive or negative class is empty")
@@ -182,8 +188,42 @@ shinyServer(function(input, output, session) {
     if (is.null(daten())) return(NULL)
     if (!input$useown) return(NULL)
     selectInput("class.col", "Select class column",
-                choices = names(daten()))
+                choices = names(daten()), width = "300px")
   })
+  
+  output$status.box <- renderInfoBox({
+    if (substr(status.message(),1,4) != "Data") {
+      out <- infoBox("Not ready", status.message(), icon = icon("warning"), color = "orange")
+    }
+    else {
+      n.pos <- class.n()[1]
+      n.neg <- class.n()[2]
+      msg <- paste(n.pos, "positive and", n.neg, "negative samples")
+      out <- infoBox("Data loaded", msg, icon = icon("check"), color = "green")
+    }
+    print(str(out))
+    return(out)
+  }) 
+  
+  output$status.box.perf <- renderInfoBox({
+    if (substr(status.message(),1,4) != "Data") {
+      out <- infoBox("Not ready", status.message(), icon = icon("warning"), color = "orange")
+    }
+    else {
+      if (input$which_metric == "none") {
+        msg <- paste("Select a metric")
+        out <- infoBox("Data loaded", msg, icon = icon("cog"), color = "yellow")
+      }
+      else {
+        n.pos <- class.n()[1]
+        n.neg <- class.n()[2]
+        msg <- paste(n.pos, "positive and", n.neg, "negative samples")
+        out <- infoBox("Data loaded", msg, icon = icon("check"), color = "green")
+      }
+    }
+    print(str(out))
+    return(out)
+  }) 
   
   output$select.pred <- renderUI({
     if (is.null(daten())) return(NULL)
@@ -191,46 +231,11 @@ shinyServer(function(input, output, session) {
       selectInput("pred.col", "Select prediction column",
                   choices = c("Continuous predictor", "Continuous with outlier",
                               "Discrete predictor", "Discrete with outlier"),
-                  selected = "Continuous predictor")  
+                  selected = "Continuous predictor", width = "300px")  
     } else {
     selectInput("pred.col", "Select prediction column",
-                choices = names(daten()))
+                choices = names(daten()), width = "300px")
     }
-  })
-  
-  output$boot.slider <- renderUI({
-    if (is.null(daten())) return(NULL)
-    if (is.null(class.n())) return(NULL)
-    sliderInput("n.boot",
-                "Number of bootstrap iterations:",
-                min = 500,
-                max = 50000,
-                round = as.integer(2),
-                step = 500,
-                ticks = FALSE,
-                value = 2000)
-   
-  })
-  
-  output$conf.slider <- renderUI({
-    if (is.null(daten())) return(NULL)
-    if (is.null(class.n())) return(NULL)
-    sliderInput("conf.level",
-                "Confidence levels:",
-                min = 0.8,
-                max = 1,
-                round = as.integer(-2),
-                step = 0.01,
-                ticks = FALSE,
-                value = 0.95)
-    
-  })
-  
-  output$sel.metric <- renderUI({
-    if (is.null(daten())) return(NULL)
-    if (is.null(class.n())) return(NULL)
-    selectInput("which_metric", "Select metric",
-                choices = c("none", "AUC", "TPR", "FPR"), selected = "none")
   })
   
   output$metric.param.slider <- renderUI({
@@ -250,7 +255,6 @@ shinyServer(function(input, output, session) {
   })
   
   output$metric.text <- renderUI({
-    return(NULL)
     if (is.null(daten())) return(NULL)
     if (is.null(class.n())) return(NULL)
     checkboxInput("metric.text", "Display metric in plot",
