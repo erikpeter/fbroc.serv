@@ -114,6 +114,7 @@ shinyServer(function(input, output, session) {
   
   output$perf.table <- renderTable({
     if (is.null(perf.obj())) return(NULL)
+
     p.o <- perf.obj()
     output <- data.frame(input$which_metric,
                          input$n.boot,
@@ -132,6 +133,7 @@ shinyServer(function(input, output, session) {
   
   output$roc.plot <- renderPlot({
     if (is.null(roc.obj())) return(NULL)
+    if (is.null(input$metric.text)) return(NULL)
     ro <- roc.obj()
     
   
@@ -142,6 +144,7 @@ shinyServer(function(input, output, session) {
       metric <- tolower(input$which_metric)  
       metric2 <- metric
       if (metric2 == "none") metric2 <- NULL
+      if (!input$metric.text) metric2 <- NULL
     }
    
     call.param <- list(x = ro, conf.level = input$conf.level, show.metric = metric2)
