@@ -51,9 +51,9 @@ dashboardPage(
                             
                 ),
                 box(width = 12,  title = "Instructions", includeMarkdown("info.md"), solidHeader = TRUE,
-                    status = "info"),
+                    status = "primary"),
                 box(width = 12,  title = "About", includeMarkdown("about.md"), solidHeader = TRUE,
-                    status = "info")
+                    status = "primary")
                 
               )),
       tabItem(tabName = "roc",
@@ -77,7 +77,7 @@ dashboardPage(
                     status = "primary",
                     plotOutput("perf.plot", height = "auto")),
                 box(width = 4, title = "Performance Table", solidHeader = TRUE,
-                    status = "info",
+                    status = "primary",
                     tableOutput("perf.table")),
                 infoBoxOutput("status.box.perf")
                 )
