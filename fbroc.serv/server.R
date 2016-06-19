@@ -145,7 +145,6 @@ shinyServer(function(input, output, session) {
     ci.lev <- round(100* p.o$conf.level , 0)
     ci.labels <- paste(ci.lev, "% CI ", c("lower", "upper"), sep = "")
     names(output) <- c("Metric", "N.Boot", "Est.", "SE", ci.labels)
-    print(output)
     return(output)    
   }, include.rownames=FALSE)
   
@@ -256,7 +255,6 @@ shinyServer(function(input, output, session) {
       msg <- paste(n.pos, "positive and", n.neg, "negative samples")
       out <- infoBox("Data loaded", msg, icon = icon("check"), color = "green")
     }
-    print(str(out))
     return(out)
   }) 
   
@@ -264,6 +262,7 @@ shinyServer(function(input, output, session) {
     if (is.null(daten())) return(NULL)
     if (is.null(class.n())) return(NULL)
     if (is.null(input$which_metric)) return(NULL)
+    if (is.null(input$metric.text)) return(NULL)
     if (!input$metric.text) return(NULL)
     if (!(input$which_metric %in% c("AUC", "Partial AUC"))) return(NULL)
     checkboxInput("show_area", "Display area instead of confidence region",
