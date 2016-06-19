@@ -11,6 +11,13 @@ library(fbroc)
 
 options(shiny.maxRequestSize = 50*1024^2)
 
+scale.text <- function(min.text.size, size, max.text.size, plot.size) {
+  plot.size <- min(1200, plot.size)
+  scal <- (plot.size-300) / (1200 - 300)
+  text.size <- min.test.size + scal * (max.text.size - min.text.size)
+  return(text.size)
+}
+
 shinyServer(function(input, output, session) {
   
   
@@ -94,6 +101,8 @@ shinyServer(function(input, output, session) {
     if (is.null(input$which_metric)) return(NULL)
     if (input$which_metric == "none") return(NULL)
     metric <- tolower(input$which_metric)
+    if (metric == "partial auc") metric <- "partial.auc"
+    
     call.param <- list(roc = ro, metric = metric, conf.level = input$conf.level)
     if (metric == "fpr") {
       if (is.null(input$metric.param)) return(NULL)
@@ -102,6 +111,17 @@ shinyServer(function(input, output, session) {
     if (metric == "tpr") {
       if (is.null(input$metric.param)) return(NULL)
       call.param <- c(call.param, list(fpr = as.numeric(input$metric.param)))
+    }
+    if (metric == "partial.auc") {
+      if (is.null(input$pauc_over)) return(NULL)
+      if (is.null(input$metric.param)) return(NULL)
+      if (is.null(input$correct_pauc)) return(NULL)
+      if (input$pauc_over == "FPR") {
+        call.param <- c(call.param, list(fpr = as.numeric(input$metric.param)))
+      } else {
+        call.param <- c(call.param, list(tpr = as.numeric(input$metric.param)))
+      }
+      call.param <- c(call.param, list(correct.partial.auc = input$correct_pauc))
     }
     perf.obj <- do.call(perf, call.param)
     return(perf.obj)
@@ -194,6 +214,22 @@ shinyServer(function(input, output, session) {
                 choices = names(daten()), width = "300px")
   })
   
+  output$correct.pauc <- renderUI({
+    if (is.null(daten())) return(NULL)
+    if (is.null(input$which_metric)) return(NULL)
+    if (input$which_metric != "Partial AUC") return(NULL)  
+    checkboxInput("correct_pauc", "Correct partial AUC", value = TRUE)
+  })
+  
+  output$partial.AUC.over <- renderUI({
+    if (is.null(daten())) return(NULL)
+    if (is.null(input$which_metric)) return(NULL)
+    if (input$which_metric != "Partial AUC") return(NULL)  
+    selectInput("pauc_over", "Calculate Partial AUC over", 
+                choices = c("FPR", "TPR"), selected = "FPR")
+  })
+  
+  
   output$status.box <- renderInfoBox({
     if (substr(status.message(),1,4) != "Data") {
       out <- infoBox("Not ready", status.message(), icon = icon("warning"), color = "orange")
@@ -247,14 +283,27 @@ shinyServer(function(input, output, session) {
     if (input$which_metric %in% c("none", "AUC")) return(NULL)
     if (input$which_metric == "TPR") text = "Fix FPR"
     if (input$which_metric == "FPR") text = "Fix TPR"
-    sliderInput("metric.param",
-                text,
-                min = 0,
-                max = 1,
-                round = as.integer(-2),
-                step = 0.01,
-                ticks = FALSE,
-                value = 0.5)
+    if (input$which_metric == "Partial AUC") {
+      text = "Integrate Area"
+      sliderInput("metric.param",
+                  text,
+                  min = 0,
+                  max = 1,
+                  round = as.integer(-2),
+                  step = 0.01,
+                  ticks = FALSE,
+                  value = c(0, 1))
+    }
+    else {
+      sliderInput("metric.param",
+                  text,
+                  min = 0,
+                  max = 1,
+                  round = as.integer(-2),
+                  step = 0.01,
+                  ticks = FALSE,
+                  value = 0.5)
+    }
   })
   
   output$metric.text <- renderUI({
