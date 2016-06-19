@@ -67,7 +67,9 @@ dashboardPage(
                 box(width = 5,title = "ROC Curve", solidHeader = TRUE,
                 #box(title = "ROC Curve", solidHeader = TRUE,
                     status = "primary",
-                    plotOutput("roc.plot", height = "auto"), uiOutput("metric.text"))
+                    plotOutput("roc.plot", height = "auto"), 
+                    uiOutput("metric.text"),
+                    uiOutput("show.area"))
                 
               )
               ),

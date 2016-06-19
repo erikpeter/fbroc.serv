@@ -163,10 +163,11 @@ shinyServer(function(input, output, session) {
     else {
       metric <- tolower(input$which_metric)  
       metric2 <- metric
+      if (metric2 == "partial auc") metric2 <- "partial.auc"
       if (metric2 == "none") metric2 <- NULL
       if (!input$metric.text) metric2 <- NULL
     }
-   
+    
     call.param <- list(x = ro, conf.level = input$conf.level, show.metric = metric2)
     
     if (metric == "fpr") {
@@ -177,7 +178,22 @@ shinyServer(function(input, output, session) {
       if (is.null(input$metric.param)) return(NULL)
       call.param <- c(call.param, list(fpr = as.numeric(input$metric.param)))
     }
-
+    if (metric == "partial auc") {
+      if (is.null(input$pauc_over)) return(NULL)
+      if (is.null(input$metric.param)) return(NULL)
+      if (is.null(input$correct_pauc)) return(NULL)
+      if (input$pauc_over == "FPR") {
+        call.param <- c(call.param, list(fpr = as.numeric(input$metric.param)))
+      } else {
+        call.param <- c(call.param, list(tpr = as.numeric(input$metric.param)))
+      }
+      call.param <- c(call.param, list(correct.partial.auc = input$correct_pauc))
+    }
+    
+    if (!is.null(input$show_area)) {
+      call.param <- c(call.param, list(show.area = input$show_area, show.conf = !input$show_area))
+    }
+    
     graph <- do.call(plot, call.param)
     
   },  height = function() {session$clientData$output_roc.plot_width})
@@ -243,6 +259,16 @@ shinyServer(function(input, output, session) {
     print(str(out))
     return(out)
   }) 
+  
+  output$show.area <- renderUI({
+    if (is.null(daten())) return(NULL)
+    if (is.null(class.n())) return(NULL)
+    if (is.null(input$which_metric)) return(NULL)
+    if (!input$metric.text) return(NULL)
+    if (!(input$which_metric %in% c("AUC", "Partial AUC"))) return(NULL)
+    checkboxInput("show_area", "Display area instead of confidence region",
+                  value = FALSE)
+  })
   
   output$status.box.perf <- renderInfoBox({
     if (substr(status.message(),1,4) != "Data") {
